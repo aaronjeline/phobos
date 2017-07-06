@@ -1,0 +1,124 @@
+The Phobos Computer:
+
+System Specifications:
+
+8 Fast Access Registers
+________________________________
+|Name|Code|Desc                |
+|NULL|   0|Null Pseudo-Register|
+|A   |   1|Accumulator         |
+|B   |   2|General Purpose     |
+|C   |   3|""                  |
+|D   |   4|""                  |
+|IP  |   5|Instruction Pointer |
+|SP  |   6|Stack Pointer       |
+|MP  |   7|Memory Pointer      |
+|MA  |   8|Memory Access       |
+--------------------------------
+
+Byte Width: 8 bits
+2^32 bytes of Random Access Memory
+
+
+Modes of operation:
+                            Execution (EXE) Mode:
+
+Description:
+	In this mode, the machine executes the opcode (as defined below) pointed to by the IP. It then increments IP, and continues.
+
+
+
+OpCode Syntax:
+An opcode is a 5-digit number:
+	Digits 0-1 identify the instruction type (TypeCode)
+	Digits 2-4 are arguments, allowing for up to 3 args, left to right
+
+Assembly & OpCode Table:
+--------------------------------
+|ASM|Args|TypeCode|Description
+|NOP|    |      00|No Operation
+|HLT|    |      01|Halt machine execution
+|RST|    |      02|Set {A,B,C,D,MP,IP} to 0. Set SP to (2^32)-1.
+|CLR|    |      03|Clear all of memory
+|MOV|   2|      04|<x>,<y>. Move the value of <x> to <y>
+|ADD|   2|      05|<x>,<y>. Calculate x+y, store in A
+|SUB|   2|      06|<x>,<y>. Calculate x-y, store in A
+|MUL|   2|      07|<x>,<y>. Calculate x*y, store in A
+|NEG|   1|      08|<x>, Calcualtes -1*x, store in A
+|NOT|   1|      09|<x>, Invertes the value in X
+|JMP|   1|     N/A|<x>, Jump to address in x. (Implemented as MOV x IP)
+|JCD|   3|      10|Conditional Jump, see condition table
+|PSH|   1|      11|<x>, Push value in x to the stack
+|POP|   1|      12|<x>, Pops value off stack into x
+|CAL|   1|      13|<x>, Calls subroutine @ x
+|RET|    |      14|Returns from subroutine
+|SWT|   1|      15|<x>, Switch to DMA mode for x instructions. See below
+|PRT|    |      16|Prints the null-terminated screen at MP
+|PRC|   1|      17|<x>, prints the character stored in x
+|CLS|    |      18|Clear the console
+|INP|   1|      19|<x>, Read 1 character in from the console, store in x
+|KPD|    |      20|Read in a value from the keypad. Store in MA
+----------------------------------------------------------------
+
+                Condition Table
+		----------------
+		|Condition|Code|
+		|       >0|   0|
+		|       <0|   1|
+		|       =0|   2|
+		|      !=0|   3|
+		----------------
+
+The Stack:
+The stack is implemented through the stack pointer (SP), it starts at the end of memory and grows upwards.
+
+Subroutines:
+The CAL & RET OpCodes implement subroutines through the stack.
+The caller MAY NOT assume that the contents of registers will remain the same.
+The subroutine MUST ensure that all values it pushes to the stack are popped BEFORE issuing a RET instruction.
+CAL <x> is implemented as follows:
+	PUSH IP
+	JMP <x>
+
+RET is implemented as follows:
+	POP A
+	JMP A
+
+Direct Memory Accces (DMA) Mode:
+DMA mode is used to directly input constant values into memory.
+It is accessed by issuing the SWT instruction.
+An instruction in DMA mode takes the following syntax:
+	MEM_ADDRESS : DESIRED_VAL
+The computer executes in DMA mode for X cycles, where X is provided by the SWT instruction. When done, the computer will automatically switch back to EXE mode.
+In ASM, this takes the form of:
+	SWT 2 //Executes 2 cycles of DMA-mode
+	1000:32
+	1001:34
+	ADD A B //The machine has resumed EXE mode
+In OpCode the SWT instruction is implemented as follows:
+________________________________________
+|Address|Value|Note                    |
+|-------|-----|------------------------|
+|0000112|00015|SWT OpCode              |
+|0000113|00002|Number of DMA cycles    |
+|0000114|01001|DMA Cycle #1 MEM_ADDRESS|
+|0000115|00032|DMA Cycle #1 DESIRED_VAL|
+|0000116|01001|DMA Cycle #2 MEM_ADDRESS|
+|0000117|01002|DMA Cycle #2 DESIRED_VAL|
+|0000118|05120|ADD A B OpCode          |
+|______________________________________|
+
+
+		I/O:
+The Phobos CPU has native support for a text console interface.
+This console uses the American Standard Code for Information Interchange (ASCII)
+
+
+
+
+
+
+
+
+
+
