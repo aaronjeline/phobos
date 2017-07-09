@@ -47,13 +47,13 @@ Assembly & OpCode Table:
 |NEG|   1|      08|<x>, Calcualtes -1*x, store in A
 |NOT|   1|      09|<x>, Invertes the value in X
 |JMP|   1|     N/A|<x>, Jump to address in x. (Implemented as MOV x IP)
-|JCD|   3|      10|Conditional Jump, see condition table
+|JCD|   3|      10|<x>,<y>,<z>. Compare contents of x using comparision #y. Jump to z.
 |PSH|   1|      11|<x>, Push value in x to the stack
 |POP|   1|      12|<x>, Pops value off stack into x
 |CAL|   1|      13|<x>, Calls subroutine @ x
 |RET|    |      14|Returns from subroutine
 |SWT|   1|      15|<x>, Switch to DMA mode for x instructions. See below
-|PRT|    |      16|Prints the null-terminated screen at MP
+|PRT|    |      16|Prints the null-terminated string at MP
 |PRC|   1|      17|<x>, prints the character stored in x
 |CLS|    |      18|Clear the console
 |INP|   1|      19|<x>, Read 1 character in from the console, store in x
